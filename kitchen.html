@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white">
+<div class="max-w-7xl mx-auto relative">
+  <div class="fixed top-0 w-full max-w-7xl bg-white z-10">
+    <table class="w-full table-fixed border-b border-gray-100">
+      <colgroup>
+        <col class="w-1/6" />
+        <col class="w-1/6" />
+        <col class="w-1/4" />
+        <col class="w-1/4" />
+        <col class="w-1/6" />
+      </colgroup>
+      <thead class="bg-white shadow">
+        <tr>
+          <th class="px-6 py-3 text-sm font-medium text-gray-500 text-center">Order</th>
+          <th class="px-6 py-3 text-sm font-medium text-gray-500 text-center">Type</th>
+          <th class="px-6 py-3 text-sm font-medium text-gray-500 text-left">Pesanan</th>
+          <th class="px-6 py-3 text-sm font-medium text-gray-500 text-left">Keterangan</th>
+          <th class="px-6 py-3 text-sm font-medium text-gray-500 text-left">Status</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+
+  <div class="px-4">
+    <div class="space-y-4 pt-14" id="ordersContainer"></div>
+  </div>
+</div>
+
+<script>
+  const categoryColors = {
+    'makanan': 'bg-orange-100 text-orange-800',
+    'minuman': 'bg-blue-100 text-blue-800',
+    'kopi': 'bg-orange-200 text-amber-800',
+    'snack': 'bg-green-100 text-green-800'
+  };
+
+  const orders = [
+    {
+      time: '10.49',
+      date: '20/10/2024',
+      type: 'dine-in',
+      items: [
+        { name: 'Nasi Goreng Telur', notes: 'Gapake Nasi', status: 'process', category: 'makanan' },
+        { name: 'Es Teh', notes: 'Less ice', status: 'process', category: 'minuman' },
+        { name: 'Kentang Goreng', notes: 'Extra sauce', status: 'process', category: 'snack' }
+      ]
+    },
+    {
+      time: '10.49',
+      date: '20/10/2024',
+      type: 'dine-in',
+      items: [
+        { name: 'Cappuccino', notes: 'Extra shot', status: 'process', category: 'kopi' },
+        { name: 'Croissant', notes: 'Dipanasin', status: 'process', category: 'snack' },
+        { name: 'Mie Dok-dok', notes: 'Telur nya 2 sama gapake kuah', status: 'process', category: 'makanan' }
+      ]
+    },
+    {
+      time: '10.12',
+      date: '20/10/2024',
+      type: 'takeaway',
+      items: [
+        { name: 'Nasi Goreng Telur', notes: 'Gapake Nasi', status: 'done', category: 'makanan' }
+      ]
+    },
+    {
+      time: '09.29',
+      date: '20/10/2024',
+      type: 'takeaway',
+      items: [
+        { name: 'Ice Americano', notes: 'Less ice', status: 'process', category: 'kopi' },
+        { name: 'Chicken Katsu', notes: 'Extra sauce', status: 'done', category: 'makanan' }
+      ]
+    }
+  ];
+
+  const typeColors = {
+    'dine-in': 'bg-blue-100 text-blue-800',
+    'takeaway': 'bg-orange-100 text-orange-800'
+  };
+
+  const typeLabels = {
+    'dine-in': 'Dine In',
+    'takeaway': 'Takeaway'
+  };
+
+  function toggleStatus(orderIndex, itemIndex) {
+    const item = orders[orderIndex].items[itemIndex];
+    item.status = (item.status === 'done') ? 'process' : 'done';
+    renderOrders();
+  }
+
+  function renderOrders() {
+    const container = document.getElementById('ordersContainer');
+    container.innerHTML = '';
+
+    orders.forEach((order, oIndex) => {
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg shadow-xl';
+
+      const table = document.createElement('table');
+      table.className = 'w-full table-fixed border-collapse rounded-lg';
+
+      table.innerHTML = `
+        <colgroup>
+          <col class="w-1/6" />
+          <col class="w-1/6" />
+          <col class="w-1/4" />
+          <col class="w-1/4" />
+          <col class="w-1/6" />
+        </colgroup>
+      `;
+
+      const tbody = document.createElement('tbody');
+
+      const allDone = order.items.every(i => i.status === 'done');
+      const isSingleItem = order.items.length === 1;
+
+      order.items.forEach((item, iIndex) => {
+        const tr = document.createElement('tr');
+        if (iIndex < order.items.length - 1) {
+          tr.className = 'border-b border-gray-200';
+        }
+
+        if (iIndex === 0) {
+          // Order number and time column
+          const tdOrder = document.createElement('td');
+          tdOrder.className = `px-4 sm:px-6 py-6 ${isSingleItem ? 'align-middle' : 'align-top'} text-center`;
+          tdOrder.rowSpan = order.items.length;
+          tdOrder.innerHTML = `
+            <div class="rounded-lg p-2 sm:p-4 space-y-3 transition-colors duration-200 cursor-pointer flex flex-col items-center">
+              <div class="text-lg font-medium text-gray-900">Order #${orders.length - oIndex}</div>
+              <div class="text-2xl font-bold text-gray-900">${order.time}</div>
+              <div class="w-full">
+                <span class="inline-block w-full px-3 py-2 rounded-full text-sm font-medium
+                  ${allDone ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                  ${allDone ? 'All Done' : 'In Progress'}
+                </span>
+              </div>
+              <div class="text-sm text-gray-500">${order.date}</div>
+            </div>
+          `;
+          tr.appendChild(tdOrder);
+
+          // Order type column
+          const tdType = document.createElement('td');
+          tdType.className = 'px-4 sm:px-6 py-4 align-middle text-center';
+          tdType.rowSpan = order.items.length;
+          tdType.innerHTML = `
+            <div class="flex items-center justify-center h-full">
+              <span class="w-full sm:w-auto px-4 py-2 rounded-md text-sm font-medium ${typeColors[order.type]}">
+                ${typeLabels[order.type]}
+              </span>
+            </div>
+          `;
+          tr.appendChild(tdType);
+        }
+
+        const tdPesanan = document.createElement('td');
+        tdPesanan.className = `px-4 sm:px-6 py-4 ${isSingleItem ? 'align-middle' : 'align-top'}`;
+        tdPesanan.innerHTML = `
+          <div class="shadow rounded-md px-4 py-2 ${categoryColors[item.category]} hover:shadow-md transition-shadow duration-200">
+            ${item.name}
+          </div>
+        `;
+        tr.appendChild(tdPesanan);
+
+        const tdKeterangan = document.createElement('td');
+        tdKeterangan.className = `px-4 sm:px-6 py-4 ${isSingleItem ? 'align-middle' : 'align-top'} text-sm text-gray-700`;
+        tdKeterangan.innerHTML = item.notes
+          ? `<div class="bg-white shadow rounded-md px-4 py-2 hover:shadow-md transition-shadow duration-200">
+               ${item.notes}
+             </div>`
+          : '-';
+        tr.appendChild(tdKeterangan);
+
+        const tdStatus = document.createElement('td');
+        tdStatus.className = `px-4 sm:px-6 py-4 ${isSingleItem ? 'align-middle' : 'align-top'}`;
+        tdStatus.innerHTML = `
+          <button
+            onclick="toggleStatus(${oIndex}, ${iIndex})"
+            class="w-full sm:w-auto px-3 py-2 rounded-md text-sm font-semibold transition-colors duration-200
+            ${item.status === 'done' 
+              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+              : 'bg-yellow-50 text-yellow-800 hover:bg-yellow-100'}"
+          >
+            ${item.status === 'done' ? 'Done' : 'Process'}
+          </button>
+        `;
+        tr.appendChild(tdStatus);
+
+        tbody.appendChild(tr);
+      });
+
+      table.appendChild(tbody);
+      card.appendChild(table);
+      container.appendChild(card);
+    });
+  }
+
+  renderOrders();
+</script>
+</body>
+</html>
