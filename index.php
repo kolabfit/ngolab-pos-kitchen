@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <title>Order List</title>
 </head>
 <body class="bg-white">
 <div class="max-w-7xl mx-auto relative">
@@ -34,62 +35,46 @@
 </div>
 
 <script>
-  const categoryColors = {
-    'makanan': 'bg-orange-100 text-orange-800',
-    'minuman': 'bg-blue-100 text-blue-800',
-    'kopi': 'bg-orange-200 text-amber-800',
-    'snack': 'bg-green-100 text-green-800'
-  };
+  let orders = [];
 
-  const orders = [
-    {
-      time: '10.49',
-      date: '20/10/2024',
-      type: 'dine-in',
-      items: [
-        { name: 'Nasi Goreng Telur', notes: 'Gapake Nasi', status: 'process', category: 'makanan' },
-        { name: 'Es Teh', notes: 'Less ice', status: 'process', category: 'minuman' },
-        { name: 'Kentang Goreng', notes: 'Extra sauce', status: 'process', category: 'snack' }
-      ]
-    },
-    {
-      time: '10.49',
-      date: '20/10/2024',
-      type: 'dine-in',
-      items: [
-        { name: 'Cappuccino', notes: 'Extra shot', status: 'process', category: 'kopi' },
-        { name: 'Croissant', notes: 'Dipanasin', status: 'process', category: 'snack' },
-        { name: 'Mie Dok-dok', notes: 'Telur nya 2 sama gapake kuah', status: 'process', category: 'makanan' }
-      ]
-    },
-    {
-      time: '10.12',
-      date: '20/10/2024',
-      type: 'takeaway',
-      items: [
-        { name: 'Nasi Goreng Telur', notes: 'Gapake Nasi', status: 'done', category: 'makanan' }
-      ]
-    },
-    {
-      time: '09.29',
-      date: '20/10/2024',
-      type: 'takeaway',
-      items: [
-        { name: 'Ice Americano', notes: 'Less ice', status: 'process', category: 'kopi' },
-        { name: 'Chicken Katsu', notes: 'Extra sauce', status: 'done', category: 'makanan' }
-      ]
-    }
-  ];
+  const categoryColors = {
+    1: 'bg-orange-100 text-orange-800', // Example mapping for category IDs
+    2: 'bg-blue-100 text-blue-800',
+    3: 'bg-green-100 text-green-800',
+  };
 
   const typeColors = {
     'dine-in': 'bg-blue-100 text-blue-800',
-    'takeaway': 'bg-orange-100 text-orange-800'
+    'takeaway': 'bg-orange-100 text-orange-800',
   };
 
   const typeLabels = {
     'dine-in': 'Dine In',
     'takeaway': 'Takeaway'
   };
+
+  async function fetchOrders() {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/transactions');
+      const data = await response.json();
+      if (data.success) {
+        orders = data.data.map(transaction => ({
+          time: new Date(transaction.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+          date: new Date(transaction.created_at).toLocaleDateString('id-ID'),
+          type: 'dine-in', // Assuming default type is dine-in; adjust based on your data
+          items: transaction.details.map(detail => ({
+            name: detail.outlet_product.product.name,
+            notes: detail.notes || '',
+            status: transaction.status === 'pending' ? 'process' : 'done',
+            category: detail.outlet_product.product.category_id
+          }))
+        }));
+        renderOrders();
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+  }
 
   function toggleStatus(orderIndex, itemIndex) {
     const item = orders[orderIndex].items[itemIndex];
@@ -130,12 +115,11 @@
         }
 
         if (iIndex === 0) {
-          // Order number and time column
           const tdOrder = document.createElement('td');
           tdOrder.className = `px-4 sm:px-6 py-6 ${isSingleItem ? 'align-middle' : 'align-top'} text-center`;
           tdOrder.rowSpan = order.items.length;
           tdOrder.innerHTML = `
-            <div class="rounded-lg p-2 sm:p-4 space-y-3 transition-colors duration-200 cursor-pointer flex flex-col items-center">
+            <div class="rounded-lg p-2 sm:p-4 space-y-3 flex flex-col items-center">
               <div class="text-lg font-medium text-gray-900">Order #${orders.length - oIndex}</div>
               <div class="text-2xl font-bold text-gray-900">${order.time}</div>
               <div class="w-full">
@@ -149,7 +133,6 @@
           `;
           tr.appendChild(tdOrder);
 
-          // Order type column
           const tdType = document.createElement('td');
           tdType.className = 'px-4 sm:px-6 py-4 align-middle text-center';
           tdType.rowSpan = order.items.length;
@@ -205,7 +188,7 @@
     });
   }
 
-  renderOrders();
+  fetchOrders();
 </script>
 </body>
 </html>
